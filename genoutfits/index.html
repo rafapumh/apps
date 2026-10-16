@@ -5,9 +5,10 @@
   GenOutFitS — generador de outfits completos a partir de una prenda, con IA (versión alumnos).
 
   Versión para alumnos de GenOutFit: catálogo de modelos de Anthropic reducido
-  (solo Sonnet 4.5 y Haiku 4.5), máximo de tokens de salida fijado a 8192,
-  máximo de 3 piezas por outfit, y pasos de inferencia (10) y tolerancia del
-  filtro de seguridad (3) de FLUX fijados por el profesor.
+  (solo Sonnet 4.5 y Haiku 4.5), máximo de tokens de salida limitado a 9216
+  solo con Anthropic, máximo de 3 piezas por outfit, pasos de inferencia de
+  FLUX elegibles entre 1, 2, 3 y 4 (2 por defecto), y tolerancia del filtro de
+  seguridad (3) de FLUX fijada por el profesor.
 
   INSTRUCCIONES PARA CUALQUIER PROFESOR QUE QUIERA ADAPTAR O ALOJAR ESTA APP
   ============================================================================
@@ -268,7 +269,7 @@
   <details class="panel-guia">
     <summary>&#191;Cómo funciona GenOutFitS?</summary>
     <p><strong>GenOutFitS</strong> es la versión para alumnos de GenOutFit: una aplicación de un solo archivo HTML que, a partir de la fotografía de una prenda, usa IA para identificar sus características y proponer un outfit completo de prendas afines, y genera una imagen de cada pieza con FLUX (fal.ai).</p>
-    <p>Esta versión tiene algunos límites fijados por el profesor para controlar el coste y la complejidad: del proveedor Anthropic solo puedes elegir Claude Sonnet 4.5 o Claude Haiku 4.5, el máximo de tokens de salida es 8192 (con Anthropic y Gemini; con OpenAI no se fuerza ningún tope, solo se muestra como información el máximo de ese modelo), el outfit puede tener como máximo 3 piezas además de la prenda original, y los pasos de inferencia (10) y la tolerancia del filtro de seguridad (3) de FLUX están fijados y no son configurables.</p>
+    <p>Esta versión tiene algunos límites fijados por el profesor para controlar el coste y la complejidad: del proveedor Anthropic solo puedes elegir Claude Sonnet 4.5 o Claude Haiku 4.5, el máximo de tokens de salida está limitado a 9216 solo con Anthropic (recomendado: 8192); con OpenAI y Gemini no se fuerza ningún tope y solo se muestra como información el máximo de ese modelo, el outfit puede tener como máximo 3 piezas además de la prenda original, los pasos de inferencia de FLUX se eligen entre 1, 2, 3 y 4 (2 por defecto), y la tolerancia del filtro de seguridad (3) de FLUX está fijada y no es configurable.</p>
     <ol>
       <li>Subes (o arrastras) la foto de una prenda.</li>
       <li>Eliges cuántas piezas debe tener el outfit completo y si quieres además una imagen de un/a modelo vistiendo todo el conjunto.</li>
@@ -296,12 +297,8 @@
         <select id="sel-modelo"></select>
       </div>
       <div class="field">
-        <label for="input-max-tokens">Nº máx. tokens de salida</label>
-        <select id="input-max-tokens">
-          <option value="4096">4096</option>
-          <option value="8192" selected>8192 (Recomendado)</option>
-          <option value="9216">9216</option>
-        </select>
+        <label for="input-max-tokens">Nº máx. tokens de salida (Recomendado: 8192)</label>
+        <input type="number" id="input-max-tokens" min="256" max="9216" step="1" value="8192">
         <p class="hint" id="limite-tokens-modelo"></p>
       </div>
     </div>
@@ -343,10 +340,22 @@
       </div>
     </div>
 
-    <div class="field">
-      <label for="input-num-piezas">Nº de piezas del outfit (sin contar la prenda original, máximo 3)</label>
-      <input type="number" id="input-num-piezas" min="1" max="3" step="1" value="2">
-      <p class="hint">Cuántas prendas afines debe proponer la IA, además de la que has subido. Los pasos de inferencia (10) y la tolerancia del filtro de seguridad (3) de FLUX están fijados por el profesor en esta versión. El máximo de piezas es 3 para que, junto a la prenda original, nunca se superen las 4 imágenes de referencia que fal.ai admite por llamada: así la foto del modelo se genera siempre en una sola llamada, sin pasos intermedios que puedan perder fidelidad.</p>
+    <div class="grid2">
+      <div class="field">
+        <label for="input-num-piezas">Nº de piezas del outfit (sin contar la prenda original, máximo 3)</label>
+        <input type="number" id="input-num-piezas" min="1" max="3" step="1" value="2">
+        <p class="hint">Cuántas prendas afines debe proponer la IA, además de la que has subido. El máximo de piezas es 3 para que, junto a la prenda original, nunca se superen las 4 imágenes de referencia que fal.ai admite por llamada: así la foto del modelo se genera siempre en una sola llamada, sin pasos intermedios que puedan perder fidelidad.</p>
+      </div>
+      <div class="field">
+        <label for="sel-pasos-inferencia">Pasos de inferencia (FLUX)</label>
+        <select id="sel-pasos-inferencia">
+          <option value="1">1</option>
+          <option value="2" selected>2 — por defecto</option>
+          <option value="3">3</option>
+          <option value="4">4 — más detalle</option>
+        </select>
+        <p class="hint">Más pasos = más detalle pero más lento y más caro en fal.ai. La tolerancia del filtro de seguridad (3) de FLUX sigue fijada por el profesor en esta versión.</p>
+      </div>
     </div>
     <div class="field">
       <label class="pick-row" for="chk-incluir-modelo">
@@ -378,6 +387,7 @@
 
   <section class="panel" id="panel-resultado" style="display:none;" aria-labelledby="h-resultado">
     <h2 id="h-resultado">3. Prompts generados — revisa y edita antes de continuar</h2>
+    <p class="hint" style="margin-top:0">Cada prompt tiene su propia casilla de selección (marcada por defecto): al pulsar "Continuar" solo se generará la imagen de los prompts marcados.</p>
     <div id="aviso-truncado" style="display:none;"></div>
     <div id="lista-prompts"></div>
     <div class="botones">
@@ -414,7 +424,7 @@
 
 <footer>
   GenOutFitS (versión alumnos) &middot; Generado con ayuda de IA &middot; Revisa siempre el resultado antes de usarlo profesionalmente<br>
-  Rafael Puerto (<a href="mailto:r.puerto@umh.es">r.puerto@umh.es</a>) &middot; &Uacute;ltima modificaci&oacute;n: 16/10/2026
+  Rafael Puerto (<a href="mailto:r.puerto@umh.es">r.puerto@umh.es</a>) &middot; &Uacute;ltima modificaci&oacute;n: 16/10/2026 19:56
 </footer>
 
 <script>
@@ -465,7 +475,8 @@ const APP_CONFIG = {
     // prioriza seguir fielmente el prompt y las imágenes de referencia sobre
     // la creatividad, para que el modelo vista las prendas tal cual son.
     guidanceScaleModelo: 4.5,
-    inferenceSteps: 10, // Versión alumnos: fijado por el profesor, no configurable
+    inferenceStepsDefecto: 2, // Versión alumnos: solo 1, 2, 3 o 4 pasos, elegibles con sel-pasos-inferencia
+    inferenceStepsOpciones: [1, 2, 3, 4],
     imageSize: "portrait_4_3",
     safetyTolerance: "3", // Versión alumnos: fijado por el profesor, no configurable
     outputFormat: "png",
@@ -495,8 +506,8 @@ const MODELOS_POR_PROVEEDOR = {
     porDefecto: "gpt-6.1-sol"
   },
   gemini: {
-    modelos: ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash"],
-    porDefecto: "gemini-1.5-flash"
+    modelos: ["gemini-3.1-pro-preview", "gemini-3.8-flash", "gemini-3.5-flash-lite"],
+    porDefecto: "gemini-3.8-flash"
   }
 };
 // Versión alumnos: lista cerrada de modelos (sin opción "Otro…"), fijada por
@@ -504,19 +515,23 @@ const MODELOS_POR_PROVEEDOR = {
 // Para añadir o quitar un modelo, edita este objeto.
 
 const LIMITE_TOKENS_DEFECTO = 8000;
-// Tope global de esta versión alumnos: deja accesibles los 3 valores fijos
-// del selector (4096/8192/9216) salvo que el propio modelo admita menos.
+// Tope global de esta versión alumnos para Anthropic y Gemini (con OpenAI no
+// se aplica ningún tope, ver obtenerMaxTokens/ajustarLimiteTokens).
 const TOPE_TOKENS_ALUMNOS = 9216;
 const LIMITES_TOKENS_MODELO = {
   "claude-sonnet-4-5": 64000,
   "claude-haiku-4-5-20251001": 64000,
-  "gpt-6-astra": 32768, "gpt-6.1-sol": 32768, "gpt-6-luna": 16384, "gpt-4.1": 32768,
+  "gpt-6-astra": 128000, "gpt-6.1-sol": 128000, "gpt-6-luna": 128000, "gpt-4.1": 32768,
   "gpt-4.1-mini": 32768, "gpt-4o": 16384, "gpt-4o-mini": 16384,
-  "gemini-1.5-pro": 8192, "gemini-1.5-flash": 8192, "gemini-2.0-flash": 8192
+  "gemini-3.1-pro-preview": 65536, "gemini-3.8-flash": 65536, "gemini-3.5-flash-lite": 65536
 };
+// Máximo de salida DOCUMENTADO del modelo (solo informativo).
+function limiteDocumentadoModelo(modelo){
+  return LIMITES_TOKENS_MODELO[modelo] || LIMITE_TOKENS_DEFECTO;
+}
+// Límite efectivo: solo se usa con Anthropic (tope de esta versión alumnos).
 function limiteTokensModelo(modelo){
-  // Versión alumnos: tope global de 8192 tokens, aunque el modelo admita más.
-  return Math.min(LIMITES_TOKENS_MODELO[modelo] || LIMITE_TOKENS_DEFECTO, TOPE_TOKENS_ALUMNOS);
+  return Math.min(limiteDocumentadoModelo(modelo), TOPE_TOKENS_ALUMNOS);
 }
 
 // --- Precios orientativos (USD por millón de tokens) -------------------------
@@ -527,8 +542,8 @@ const PRECIOS_POR_MTOK = {
   "gpt-6-astra": {in: 10.00, out: 50.00}, "gpt-6.1-sol": {in: 2.00, out: 10.00}, "gpt-6-luna": {in: 0.10, out: 0.50},
   "gpt-4o": {in: 2.50, out: 10.00}, "gpt-4o-mini": {in: 0.15, out: 0.60},
   "gpt-4.1": {in: 2.00, out: 8.00}, "gpt-4.1-mini": {in: 0.40, out: 1.60},
-  "gemini-1.5-pro": {in: 1.25, out: 5.00}, "gemini-1.5-flash": {in: 0.075, out: 0.30},
-  "gemini-2.0-flash": {in: 0.10, out: 0.40}
+  "gemini-3.1-pro-preview": {in: 2.50, out: 15.00}, "gemini-3.8-flash": {in: 0.75, out: 3.75},
+  "gemini-3.5-flash-lite": {in: 0.30, out: 2.50}
 };
 
 const CLAVES_LOCALSTORAGE = {anthropic: "ia_anthropic_key", openai: "ia_openai_key", gemini: "ia_gemini_key"};
@@ -552,6 +567,7 @@ const inputImagen = $("input-imagen");
 const previewWrap = $("preview-wrap");
 const previewImg = $("preview-img");
 const inputNumPiezas = $("input-num-piezas");
+const selPasosInferencia = $("sel-pasos-inferencia");
 const chkIncluirModelo = $("chk-incluir-modelo");
 const inputSystemPrompt = $("input-system-prompt");
 const btnGenerar = $("btn-generar");
@@ -574,8 +590,9 @@ const estimacionTokensDiv = $("estimacion-tokens");
 let imagenBase64 = null;   // sin el prefijo "data:...;base64,"
 let imagenMediaType = null;
 let costeAcumulado = {entrada: 0, salida: 0, usd: 0};
-let piezasActuales = null; // [{nombre, prompt}], mantenidas en orden tras edición
+let piezasActuales = null; // [{nombre, prompt, seleccionada}], mantenidas en orden tras edición
 let modeloShotPrompt = null;
+let modeloSeleccionado = true; // casilla de selección de la foto del modelo (por defecto marcada)
 let promptAnalisisImagen = null; // prompt de texto enviado junto a la imagen subida, para visualizarlo en "Prompts generados"
 let imagenesGeneradas = []; // [{nombre, dataUrl}] tras llamar a FLUX
 
@@ -592,41 +609,38 @@ function storageRemove(k){ try { localStorage.removeItem(k); } catch(e){} }
 function proveedorActivo(){ return selProveedor.value; }
 function modeloActivo(){ return selModelo.value; } // Versión alumnos: catálogo cerrado, sin opción "Otro…"
 
-// El nº máx. de tokens de salida solo admite estos 3 valores fijos
-// (4096/8192/9216); 8192 es el recomendado (y el valor por defecto) para
-// el prompt de esta app. Los tres son accesibles salvo que el modelo activo
-// tenga un límite propio menor (ver limiteTokensModelo).
+// 8192 es el valor recomendado (y por defecto) para el prompt de esta app.
+// Solo con Anthropic el campo se recorta al límite del modelo activo y al
+// tope de esta versión alumnos (ver limiteTokensModelo); con OpenAI y con
+// Gemini no se aplica ningún tope (ver obtenerMaxTokens/ajustarLimiteTokens).
 const MAX_TOKENS_RECOMENDADO = 8192;
 
 function obtenerMaxTokens(){
   const valor = parseInt(inputMaxTokens.value, 10);
   const limite = limiteTokensModelo(modeloActivo());
-  // A petición del profesor: con OpenAI no se fuerza ningún tope de tokens de
-  // salida, se deja el valor elegido tal cual (el límite del modelo se
-  // muestra solo como información, ver ajustarLimiteTokens). Con Anthropic y
-  // Gemini se mantiene el tope de siempre.
-  if (proveedorActivo() === "openai") return valor || MAX_TOKENS_RECOMENDADO;
-  if (!valor) return Math.min(MAX_TOKENS_RECOMENDADO, limite);
+  // A petición del profesor: el tope de tokens de salida de esta versión
+  // alumnos solo se aplica con Anthropic. Con OpenAI y con Gemini se deja el
+  // valor elegido tal cual (el límite del modelo se muestra solo como
+  // información, ver ajustarLimiteTokens).
+  if (proveedorActivo() !== "anthropic") return valor && valor >= 256 ? valor : MAX_TOKENS_RECOMENDADO;
+  if (!valor || valor < 256) return Math.min(MAX_TOKENS_RECOMENDADO, limite);
   return Math.min(valor, limite);
 }
 function ajustarLimiteTokens(){
-  const limite = limiteTokensModelo(modeloActivo());
-  const esOpenAI = proveedorActivo() === "openai";
-  // Deshabilita las opciones que superen el límite del modelo activo; si el
-  // valor seleccionado deja de estar permitido, se cae al permitido más alto
-  // disponible. Con OpenAI no se deshabilita ninguna opción (a petición del
-  // profesor, no se fuerza ningún tope para este proveedor): el límite del
-  // modelo se muestra solo como información, más abajo.
-  Array.from(inputMaxTokens.options).forEach(op => {
-    op.disabled = !esOpenAI && parseInt(op.value, 10) > limite;
-  });
-  if (!esOpenAI && inputMaxTokens.options[inputMaxTokens.selectedIndex].disabled){
-    const permitidos = Array.from(inputMaxTokens.options).filter(op => !op.disabled);
-    inputMaxTokens.value = permitidos.length ? permitidos[permitidos.length - 1].value : inputMaxTokens.options[0].value;
+  const esAnthropic = proveedorActivo() === "anthropic";
+  const limite = esAnthropic ? limiteTokensModelo(modeloActivo()) : limiteDocumentadoModelo(modeloActivo());
+  // Con OpenAI y con Gemini no se fija el atributo "max" del campo ni se
+  // recorta el valor introducido (a petición del profesor, el tope de esta
+  // versión alumnos solo se aplica con Anthropic): el límite del modelo se
+  // muestra solo como información, más abajo.
+  if (!esAnthropic){
+    inputMaxTokens.removeAttribute("max");
+    limiteTokensModeloDiv.textContent = `Máximo documentado para este modelo: ${limite.toLocaleString("es-ES")} tokens (con este proveedor la aplicación no fuerza este tope: es solo informativo, puedes escribir cualquier valor).`;
+    return;
   }
-  limiteTokensModeloDiv.textContent = esOpenAI
-    ? `Máximo documentado para este modelo: ${limite.toLocaleString("es-ES")} tokens (con OpenAI la aplicación no fuerza este tope: es solo informativo, puedes elegir cualquiera de las opciones).`
-    : `Límite para este modelo: ${limite.toLocaleString("es-ES")} tokens.`;
+  inputMaxTokens.max = String(limite);
+  if (parseInt(inputMaxTokens.value, 10) > limite) inputMaxTokens.value = String(limite);
+  limiteTokensModeloDiv.textContent = `Límite para este modelo: ${limite.toLocaleString("es-ES")} tokens (tope de esta versión alumnos: ${TOPE_TOKENS_ALUMNOS.toLocaleString("es-ES")} tokens).`;
 }
 function repintarModelos(){
   const cfg = MODELOS_POR_PROVEEDOR[proveedorActivo()];
@@ -785,6 +799,15 @@ function mensajeErrorHttp(status, cuerpo){
   const detalle = cuerpo && (cuerpo.error && cuerpo.error.message ? cuerpo.error.message : JSON.stringify(cuerpo).slice(0,200));
   return "Error del proveedor (código " + status + ")" + (detalle ? ": " + detalle : ".");
 }
+// Algunos modelos de OpenAI (p. ej. la familia de razonamiento gpt-6-*) ya no
+// aceptan "max_tokens" y devuelven un error 400 pidiendo "max_completion_tokens"
+// en su lugar. Se detecta ese error concreto en el cuerpo de la respuesta para
+// reintentar la llamada una única vez renombrando el parámetro, sin necesidad
+// de mantener una lista de qué modelos lo requieren.
+function requiereMaxCompletionTokens(cuerpo){
+  const msg = cuerpo && cuerpo.error && typeof cuerpo.error.message === "string" ? cuerpo.error.message : "";
+  return /max_tokens/i.test(msg) && /max_completion_tokens/i.test(msg);
+}
 
 // userPrompt: texto. imagen: {mediaType, base64} opcional (solo en la 1ª llamada).
 async function llamarIA(systemPrompt, userPrompt, opts, imagen){
@@ -826,8 +849,14 @@ async function llamarIA(systemPrompt, userPrompt, opts, imagen){
     throw new Error("Proveedor desconocido: " + proveedor);
   }
 
-  const resp = await fetchConTimeout(url, {method:"POST", headers, body: JSON.stringify(body)});
+  let resp = await fetchConTimeout(url, {method:"POST", headers, body: JSON.stringify(body)});
   let data; try { data = await resp.json(); } catch(e){ data = {}; }
+  if (!resp.ok && proveedor === "openai" && requiereMaxCompletionTokens(data)){
+    const { max_tokens, ...bodySinMaxTokens } = body;
+    const bodyAlt = { ...bodySinMaxTokens, max_completion_tokens: max_tokens };
+    resp = await fetchConTimeout(url, {method:"POST", headers, body: JSON.stringify(bodyAlt)});
+    try { data = await resp.json(); } catch(e){ data = {}; }
+  }
   if (!resp.ok) throw new Error(mensajeErrorHttp(resp.status, data));
 
   const texto = extraerTexto(data);
@@ -1016,8 +1045,9 @@ async function analizarYGenerarPrompts(){
     avisoTruncadoDiv.style.display = "none";
   }
 
-  piezasActuales = datos.pieces.map(p => ({nombre: p.name, prompt: p.prompt}));
+  piezasActuales = datos.pieces.map(p => ({nombre: p.name, prompt: p.prompt, seleccionada: true}));
   modeloShotPrompt = incluirModelo ? (datos.model_shot_prompt || null) : null;
+  modeloSeleccionado = true;
   promptAnalisisImagen = userPrompt;
 }
 
@@ -1037,25 +1067,55 @@ function pintarPrompts(){
   piezasActuales.forEach((pieza, i) => {
     const card = document.createElement("div");
     card.className = "pieza-card";
-    card.innerHTML = `<h3>${escapeHTML(pieza.nombre)}</h3>
+    const seleccionada = pieza.seleccionada !== false;
+    card.innerHTML = `<label class="pick-row" style="margin-top:0;">
+        <input type="checkbox" data-tipo="pieza-sel" data-idx="${i}" ${seleccionada ? "checked" : ""}>
+        <span>Generar la imagen de esta pieza</span>
+      </label>
+      <h3>${escapeHTML(pieza.nombre)}</h3>
       <textarea class="tall mono" data-idx="${i}" data-tipo="pieza">${escapeHTML(pieza.prompt)}</textarea>`;
     listaPrompts.appendChild(card);
   });
   if (modeloShotPrompt !== null){
     const card = document.createElement("div");
     card.className = "pieza-card modelo";
-    card.innerHTML = `<h3>Modelo con el outfit completo</h3>
+    card.innerHTML = `<label class="pick-row" style="margin-top:0;">
+        <input type="checkbox" data-tipo="modelo-sel" ${modeloSeleccionado ? "checked" : ""}>
+        <span>Generar esta imagen</span>
+      </label>
+      <h3>Modelo con el outfit completo</h3>
       <textarea class="tall mono" data-tipo="modelo">${escapeHTML(modeloShotPrompt)}</textarea>`;
     listaPrompts.appendChild(card);
   }
   panelResultado.style.display = "block";
-  btnContinuar.disabled = false;
+  actualizarBotonContinuar();
   btnDescargarPrompts.disabled = false;
 }
+// Recalcula si hay al menos un prompt seleccionado (pieza o foto del modelo);
+// si no hay ninguno, no tiene sentido continuar, así que se deshabilita el botón.
+function actualizarBotonContinuar(){
+  const haySeleccion = (piezasActuales || []).some(p => p.seleccionada !== false)
+    || (modeloShotPrompt !== null && modeloSeleccionado);
+  btnContinuar.disabled = !haySeleccion;
+}
+// Delegación de eventos: al marcar/desmarcar cualquier casilla de selección,
+// se actualiza al instante el estado guardado y el botón "Continuar".
+listaPrompts.addEventListener("change", (e) => {
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement) || t.type !== "checkbox") return;
+  if (t.dataset.tipo === "pieza-sel") piezasActuales[parseInt(t.dataset.idx, 10)].seleccionada = t.checked;
+  else if (t.dataset.tipo === "modelo-sel") modeloSeleccionado = t.checked;
+  else return;
+  actualizarBotonContinuar();
+});
 function recogerPromptsEditados(){
   listaPrompts.querySelectorAll("textarea").forEach(ta => {
     if (ta.dataset.tipo === "pieza") piezasActuales[parseInt(ta.dataset.idx, 10)].prompt = ta.value;
     else if (ta.dataset.tipo === "modelo") modeloShotPrompt = ta.value;
+  });
+  listaPrompts.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+    if (chk.dataset.tipo === "pieza-sel") piezasActuales[parseInt(chk.dataset.idx, 10)].seleccionada = chk.checked;
+    else if (chk.dataset.tipo === "modelo-sel") modeloSeleccionado = chk.checked;
   });
 }
 // Descarga todos los prompts (piezas + modelo, si lo hay) en un único TXT,
@@ -1103,7 +1163,8 @@ async function esperarColaFal(encolado, headers){
   throw new Error("Tiempo de espera agotado mientras fal.ai procesaba la imagen en cola.");
 }
 function obtenerPasosInferencia(){
-  return APP_CONFIG.fal.inferenceSteps; // Versión alumnos: fijado, no configurable
+  const v = parseInt(selPasosInferencia.value, 10);
+  return APP_CONFIG.fal.inferenceStepsOpciones.includes(v) ? v : APP_CONFIG.fal.inferenceStepsDefecto;
 }
 function obtenerSafetyTolerance(){
   return APP_CONFIG.fal.safetyTolerance; // Versión alumnos: fijado, no configurable
@@ -1319,7 +1380,10 @@ async function generarTodasLasImagenes(){
     imagenesGeneradas.push({nombre: nombreOriginal, dataUrl: original, esOriginal: true});
   }
 
-  for (const pieza of piezasActuales){
+  // Solo se generan las imágenes de las piezas cuya casilla de selección
+  // esté marcada; las que no lo estén se omiten por completo (ni se llama a
+  // fal.ai ni aparecen como tarjeta en el resultado).
+  for (const pieza of piezasActuales.filter(p => p.seleccionada !== false)){
     const card = pintarImagenPlaceholder(pieza.nombre, false);
     estadoTexto.textContent = `Generando imagen: ${pieza.nombre}…`;
     try {
@@ -1333,7 +1397,7 @@ async function generarTodasLasImagenes(){
     }
   }
 
-  if (modeloShotPrompt){
+  if (modeloShotPrompt && modeloSeleccionado){
     const nombreModelo = "Modelo con el outfit completo";
     const card = pintarImagenPlaceholder(nombreModelo, true);
     estadoTexto.textContent = imagenesReferenciaModelo.length > FAL_KONTEXT_MAX_IMAGES
@@ -1460,8 +1524,9 @@ function cargarDesdeHistorial(rec){
   // volver a llamar a ninguna API: permite revisar una generación anterior
   // (y continuar/editar sus prompts), aunque no descargar sus imágenes ni
   // exportarlas a PDF — ver el aviso que se pinta más abajo.
-  piezasActuales = rec.items.filter(it => !it.esModelo && !it.esOriginal).map(it => ({nombre: it.nombre, prompt: it.prompt}));
+  piezasActuales = rec.items.filter(it => !it.esModelo && !it.esOriginal).map(it => ({nombre: it.nombre, prompt: it.prompt, seleccionada: true}));
   modeloShotPrompt = rec.incluirModelo ? (rec.items.find(it => it.esModelo)?.prompt || null) : null;
+  modeloSeleccionado = true;
   promptAnalisisImagen = rec.promptAnalisis || null; // ausente en generaciones guardadas antes de añadir esta visualización
   pintarPrompts();
 
@@ -1577,6 +1642,10 @@ btnGenerar.addEventListener("click", async () => {
 
 btnContinuar.addEventListener("click", async () => {
   recogerPromptsEditados();
+  if (!(piezasActuales || []).some(p => p.seleccionada !== false) && !(modeloShotPrompt !== null && modeloSeleccionado)){
+    alert("No has seleccionado ningún prompt: marca al menos una casilla antes de continuar.");
+    return;
+  }
   mostrarCargando(btnContinuar, "Generando imágenes con FLUX…");
   try {
     await generarTodasLasImagenes();
@@ -1585,7 +1654,7 @@ btnContinuar.addEventListener("click", async () => {
   } catch(err){
     mostrarError(btnContinuar, err);
   } finally {
-    btnContinuar.disabled = false;
+    actualizarBotonContinuar();
   }
 });
 
