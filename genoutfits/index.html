@@ -269,7 +269,7 @@
   <details class="panel-guia">
     <summary>&#191;Cómo funciona GenOutFitS?</summary>
     <p><strong>GenOutFitS</strong> es la versión para alumnos de GenOutFit: una aplicación de un solo archivo HTML que, a partir de la fotografía de una prenda, usa IA para identificar sus características y proponer un outfit completo de prendas afines, y genera una imagen de cada pieza con FLUX (fal.ai).</p>
-    <p>Esta versión tiene algunos límites fijados por el profesor para controlar el coste y la complejidad: del proveedor Anthropic solo puedes elegir Claude Sonnet 4.5 o Claude Haiku 4.5, el máximo de tokens de salida está limitado a 9216 solo con Anthropic (recomendado: 8192); con OpenAI y Gemini no se fuerza ningún tope y solo se muestra como información el máximo de ese modelo, el outfit puede tener como máximo 3 piezas además de la prenda original, los pasos de inferencia de FLUX se eligen entre 1, 2, 3 y 4 (2 por defecto), y la tolerancia del filtro de seguridad (3) de FLUX está fijada y no es configurable.</p>
+    <p>Esta versión tiene algunos límites fijados por el profesor para controlar el coste y la complejidad: del proveedor Anthropic solo puedes elegir Claude Sonnet 4.5, Claude Haiku 4.5, Claude Sonnet 5.5 o Claude Haiku 5.5, el máximo de tokens de salida está limitado a 12000 solo con Anthropic (recomendado: 8192); con OpenAI y Gemini no se fuerza ningún tope y solo se muestra como información el máximo de ese modelo, el outfit puede tener como máximo 3 piezas además de la prenda original, los pasos de inferencia de FLUX se eligen entre 1, 2, 3 y 4 (2 por defecto), y la tolerancia del filtro de seguridad (3) de FLUX está fijada y no es configurable.</p>
     <ol>
       <li>Subes (o arrastras) la foto de una prenda.</li>
       <li>Eliges cuántas piezas debe tener el outfit completo y si quieres además una imagen de un/a modelo vistiendo todo el conjunto.</li>
@@ -298,7 +298,7 @@
       </div>
       <div class="field">
         <label for="input-max-tokens">Nº máx. tokens de salida (Recomendado: 8192)</label>
-        <input type="number" id="input-max-tokens" min="256" max="9216" step="1" value="8192">
+        <input type="number" id="input-max-tokens" min="256" max="12000" step="1" value="8192">
         <p class="hint" id="limite-tokens-modelo"></p>
       </div>
     </div>
@@ -424,7 +424,7 @@
 
 <footer>
   GenOutFitS (versión alumnos) &middot; Generado con ayuda de IA &middot; Revisa siempre el resultado antes de usarlo profesionalmente<br>
-  Rafael Puerto (<a href="mailto:r.puerto@umh.es">r.puerto@umh.es</a>) &middot; &Uacute;ltima modificaci&oacute;n: 16/10/2026 19:56
+  Rafael Puerto (<a href="mailto:r.puerto@umh.es">r.puerto@umh.es</a>) &middot; &Uacute;ltima modificaci&oacute;n: 11/11/2026 23:10
 </footer>
 
 <script>
@@ -498,7 +498,7 @@ const ASPECT_RATIO_POR_IMAGE_SIZE = {
 // --- Modelos por proveedor (texto/visión) ------------------------------------
 const MODELOS_POR_PROVEEDOR = {
   anthropic: {
-    modelos: ["claude-sonnet-4-5", "claude-haiku-4-5-20251001"],
+    modelos: ["claude-sonnet-4-5", "claude-haiku-4-5-20251001", "claude-sonnet-5-5", "claude-haiku-5-5"],
     porDefecto: "claude-sonnet-4-5" // valor definido en el BLOQUE 0 del encargo
   },
   openai: {
@@ -517,10 +517,12 @@ const MODELOS_POR_PROVEEDOR = {
 const LIMITE_TOKENS_DEFECTO = 8000;
 // Tope global de esta versión alumnos para Anthropic y Gemini (con OpenAI no
 // se aplica ningún tope, ver obtenerMaxTokens/ajustarLimiteTokens).
-const TOPE_TOKENS_ALUMNOS = 9216;
+const TOPE_TOKENS_ALUMNOS = 12000;
 const LIMITES_TOKENS_MODELO = {
   "claude-sonnet-4-5": 64000,
   "claude-haiku-4-5-20251001": 64000,
+  "claude-sonnet-5-5": 128000,
+  "claude-haiku-5-5": 128000,
   "gpt-6-astra": 128000, "gpt-6.1-sol": 128000, "gpt-6-luna": 128000, "gpt-4.1": 32768,
   "gpt-4.1-mini": 32768, "gpt-4o": 16384, "gpt-4o-mini": 16384,
   "gemini-3.1-pro-preview": 65536, "gemini-3.8-flash": 65536, "gemini-3.5-flash-lite": 65536
@@ -539,6 +541,7 @@ function limiteTokensModelo(modelo){
 // tarifas vigentes antes de usarlos con fines de facturación real.
 const PRECIOS_POR_MTOK = {
   "claude-sonnet-4-5": {in: 3.00, out: 15.00}, "claude-haiku-4-5-20251001": {in: 1.00, out: 5.00},
+  "claude-sonnet-5-5": {in: 2.00, out: 10.00}, "claude-haiku-5-5": {in: 0.10, out: 0.50},
   "gpt-6-astra": {in: 10.00, out: 50.00}, "gpt-6.1-sol": {in: 2.00, out: 10.00}, "gpt-6-luna": {in: 0.10, out: 0.50},
   "gpt-4o": {in: 2.50, out: 10.00}, "gpt-4o-mini": {in: 0.15, out: 0.60},
   "gpt-4.1": {in: 2.00, out: 8.00}, "gpt-4.1-mini": {in: 0.40, out: 1.60},

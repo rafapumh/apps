@@ -178,7 +178,7 @@
     <p>La imagen resultante depende de:</p>
     <ul>
       <li>La idea inicial.</li>
-      <li>Si se mejora el prompt: las instrucciones del sistema, el proveedor y modelo de IA elegidos (Anthropic/Claude, OpenAI/GPT o Google/Gemini) y el m&#225;ximo de tokens (entre 1 y 8192 solo con Anthropic; con OpenAI y Gemini, cualquier entero positivo, sin tope forzado por la aplicaci&#243;n).</li>
+      <li>Si se mejora el prompt: las instrucciones del sistema, el proveedor y modelo de IA elegidos (Anthropic/Claude, OpenAI/GPT o Google/Gemini) y el m&#225;ximo de tokens (entre 1 y 12000 solo con Anthropic; con OpenAI y Gemini, cualquier entero positivo, sin tope forzado por la aplicaci&#243;n).</li>
       <li>El modelo de generaci&#243;n de imagen.</li>
       <li>El n&#250;mero de pasos de inferencia (1, 2, 3 o 4 en esta versi&#243;n; 2 por defecto).</li>
     </ul>
@@ -228,8 +228,8 @@
         </div>
         <div class="field claude-only">
           <label for="maxTokens">M&#225;ximo de tokens</label>
-          <input type="number" id="maxTokens" min="1" max="8192" step="1" inputmode="numeric" value="4096">
-          <p class="hint" id="maxTokensHint">L&#237;mite de longitud de la respuesta del modelo de texto (<code>max_tokens</code>). Entre 1 y 8192; por defecto 4096. Solo se usa si el prompt se mejora con IA.</p>
+          <input type="number" id="maxTokens" min="1" max="12000" step="1" inputmode="numeric" value="4096">
+          <p class="hint" id="maxTokensHint">L&#237;mite de longitud de la respuesta del modelo de texto (<code>max_tokens</code>). Entre 1 y 12000; por defecto 4096. Solo se usa si el prompt se mejora con IA.</p>
         </div>
       </div>
       <div>
@@ -370,7 +370,7 @@
 
   <footer>
     <p>Rafael Puerto (<a href="mailto:r.puerto@umh.es">r.puerto@umh.es</a>)</p>
-    <p>&#218;ltima modificaci&#243;n: 16/10/2026 19:56</p>
+    <p>&#218;ltima modificaci&#243;n: 11/11/2026 23:10</p>
   </footer>
 </div>
 
@@ -391,7 +391,7 @@ const APP_CONFIG = {
     version: "2023-06-01",
     defaultModel: "claude-sonnet-4-5-20250929",   // Configurable: no asumas que es v\u00e1lido indefinidamente
     maxTokens: 4096,
-    maxAllowedTokens: 8192
+    maxAllowedTokens: 12000
   },
   fal: {
     baseUrl: "https://fal.run/",                  // El endpoint final es baseUrl + identificador del modelo
@@ -409,7 +409,9 @@ const APP_CONFIG = {
    Versi\u00f3n alumnos: lista cerrada (sin opci\u00f3n "Otro\u2026"), fijada por el profesor. */
 const CLAUDE_MODELS = [
   { id: "claude-sonnet-4-5-20250929", label: "Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)" },
-  { id: "claude-haiku-4-5-20251001",  label: "Claude Haiku 4.5 (claude-haiku-4-5-20251001)" }
+  { id: "claude-haiku-4-5-20251001",  label: "Claude Haiku 4.5 (claude-haiku-4-5-20251001)" },
+  { id: "claude-sonnet-5-5",          label: "Claude Sonnet 5.5 (claude-sonnet-5-5)" },
+  { id: "claude-haiku-5-5",           label: "Claude Haiku 5.5 (claude-haiku-5-5)" }
 ];
 
 /* Modelos de OpenAI configurados. Para a\u00f1adir otro, agrega una entrada.
@@ -438,6 +440,7 @@ const GEMINI_MODELS = [
    como informaci\u00f3n (ver updateMaxTokensUI). */
 const MODEL_TOKEN_LIMITS = {
   "claude-sonnet-4-5-20250929": 64000, "claude-haiku-4-5-20251001": 64000,
+  "claude-sonnet-5-5": 128000, "claude-haiku-5-5": 128000,
   "claude-sonnet-5": 128000, "claude-opus-5-5": 128000, "claude-fable-5-1": 128000,
   "gpt-6-astra": 128000, "gpt-6.1-sol": 128000, "gpt-6-luna": 128000, "gpt-4.1": 32768,
   "gpt-4.1-mini": 32768, "gpt-4o": 16384, "gpt-4o-mini": 16384,
@@ -514,7 +517,9 @@ const PRICING = {
   // antes de usarlas con fines de facturacion real.
   anthropic: {
     "claude-sonnet-4-5-20250929": { inputPerMTok: 3.00, outputPerMTok: 15.00 },
-    "claude-haiku-4-5-20251001": { inputPerMTok: 1.00, outputPerMTok: 5.00 }
+    "claude-haiku-4-5-20251001": { inputPerMTok: 1.00, outputPerMTok: 5.00 },
+    "claude-sonnet-5-5": { inputPerMTok: 2.00, outputPerMTok: 10.00 },
+    "claude-haiku-5-5": { inputPerMTok: 0.10, outputPerMTok: 0.50 }
   },
   // Precios orientativos de OpenAI en USD por millón de tokens. Verifica las
   // tarifas vigentes antes de usarlas con fines de facturación real.
